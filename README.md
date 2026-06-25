@@ -47,8 +47,8 @@ GitHub Pages is static hosting, so it cannot return a dynamic `text/css` respons
 ## Apply to Home Assistant Dashboard
 
 1. Download the generated CSS file.
-2. Place it under `/config/www/`, for example `/config/www/homeassistant-custom-font.css`.
+2. Place it under `/config/www/`.
 3. Open Home Assistant and go to `Settings` -> `Dashboards`.
 4. Open the dashboard menu and choose `Resources`.
-5. Add `/local/homeassistant-custom-font.css` as a `Stylesheet` resource.
+5. Add the downloaded file URL as a `Stylesheet` resource, for example `/local/homeassistant-font-roboto-noto-sans-jp.css`.
 6. Restart Home Assistant, then hard refresh the browser or clear the frontend cache.
