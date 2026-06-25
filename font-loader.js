@@ -21,37 +21,7 @@ function fontStack(fonts, generic) {
   return [...fonts.map(quoteFont), generic].join(", ");
 }
 
-function fontVariables(fonts) {
-  const bodyStack = fontStack(fonts, "sans-serif");
-  const codeStack = fontStack(fonts.length > 0 ? [...CODE_FONTS, ...fonts] : [], "monospace");
-
-  return [
-    ["--ha-font-family-body", bodyStack],
-    ["--ha-font-family-heading", bodyStack],
-    ["--ha-font-family-code", codeStack],
-    ["--primary-font-family", bodyStack],
-    ["--paper-font-common-base_-_font-family", bodyStack],
-    ["--mdc-typography-font-family", bodyStack],
-    ["--material-font-family", bodyStack],
-    ["--md-sys-typescale-display-large-font", bodyStack],
-    ["--md-sys-typescale-display-medium-font", bodyStack],
-    ["--md-sys-typescale-display-small-font", bodyStack],
-    ["--md-sys-typescale-headline-large-font", bodyStack],
-    ["--md-sys-typescale-headline-medium-font", bodyStack],
-    ["--md-sys-typescale-headline-small-font", bodyStack],
-    ["--md-sys-typescale-title-large-font", bodyStack],
-    ["--md-sys-typescale-title-medium-font", bodyStack],
-    ["--md-sys-typescale-title-small-font", bodyStack],
-    ["--md-sys-typescale-body-large-font", bodyStack],
-    ["--md-sys-typescale-body-medium-font", bodyStack],
-    ["--md-sys-typescale-body-small-font", bodyStack],
-    ["--md-sys-typescale-label-large-font", bodyStack],
-    ["--md-sys-typescale-label-medium-font", bodyStack],
-    ["--md-sys-typescale-label-small-font", bodyStack],
-  ];
-}
-
-function importUrl(fonts) {
+function googleFontsUrl(fonts) {
   const families = [...new Set(fonts.length > 0 ? [...CODE_FONTS, ...fonts] : [])].map((font) => {
     return `family=${googleFamily(font)}`;
   });
@@ -59,12 +29,17 @@ function importUrl(fonts) {
   return families.length > 0 ? `https://fonts.googleapis.com/css2?${families.join("&")}&display=block` : "";
 }
 
-function buildCss(fonts) {
+function fontCss(fonts) {
   const bodyStack = fontStack(fonts, "sans-serif");
-  const declarations = fontVariables(fonts).map(([name, value]) => `  ${name}: ${value};`).join("\n");
+  const codeStack = fontStack(fonts.length > 0 ? [...CODE_FONTS, ...fonts] : [], "monospace");
 
   return `html {
-${declarations}
+  --ha-font-family-body: ${bodyStack};
+  --ha-font-family-heading: ${bodyStack};
+  --ha-font-family-code: ${codeStack};
+  --primary-font-family: ${bodyStack};
+  --paper-font-common-base_-_font-family: ${bodyStack};
+  --mdc-typography-font-family: ${bodyStack};
   font-family: ${bodyStack};
 }
 
@@ -74,98 +49,31 @@ body {
 `;
 }
 
-const fontLinkId = "home-assistant-custom-font-google";
-const styleId = "home-assistant-custom-font";
-const fonts = fontsFromModuleUrl();
-const googleFontsUrl = importUrl(fonts);
-let pendingApply = false;
-let observer;
-
-function observeRoot() {
-  if (!observer) {
-    return;
-  }
-
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["class", "style"],
-  });
-}
-
-function upsertHeadElements() {
-  if (!document.head) {
-    return;
-  }
-
-  const existingLink = document.getElementById(fontLinkId);
-
-  if (googleFontsUrl) {
-    if (existingLink?.getAttribute("href") !== googleFontsUrl) {
-      existingLink?.remove();
-
-      const link = document.createElement("link");
-      link.id = fontLinkId;
-      link.rel = "stylesheet";
-      link.href = googleFontsUrl;
-      link.addEventListener("load", scheduleApply, { once: true });
-      document.head.append(link);
-    }
-  } else {
-    existingLink?.remove();
-  }
-
-  const css = buildCss(fonts);
-  const style = document.getElementById(styleId) || document.createElement("style");
-
-  style.id = styleId;
-  style.dataset.homeAssistantCustomFont = "true";
-
-  if (style.textContent !== css) {
-    style.textContent = css;
-  }
-
-  if (!style.isConnected) {
-    document.head.append(style);
-  }
-}
-
-function applyInlineOverrides() {
-  const bodyStack = fontStack(fonts, "sans-serif");
-
-  observer?.disconnect();
-  fontVariables(fonts).forEach(([name, value]) => {
-    document.documentElement.style.setProperty(name, value, "important");
-  });
-  document.documentElement.style.setProperty("font-family", bodyStack, "important");
-  document.body?.style.setProperty("font-family", bodyStack, "important");
-  observeRoot();
-}
-
 function apply() {
-  upsertHeadElements();
-  applyInlineOverrides();
-}
-
-function scheduleApply() {
-  if (pendingApply) {
+  if (!document.head) {
+    setTimeout(apply, 100);
     return;
   }
 
-  pendingApply = true;
-  requestAnimationFrame(() => {
-    pendingApply = false;
-    apply();
-  });
+  const fonts = fontsFromModuleUrl();
+  const url = googleFontsUrl(fonts);
+
+  document.getElementById("home-assistant-custom-font-google")?.remove();
+  document.getElementById("home-assistant-custom-font")?.remove();
+
+  if (url) {
+    const link = document.createElement("link");
+    link.id = "home-assistant-custom-font-google";
+    link.rel = "stylesheet";
+    link.href = url;
+    document.head.append(link);
+  }
+
+  const style = document.createElement("style");
+  style.id = "home-assistant-custom-font";
+  style.textContent = fontCss(fonts);
+  document.head.append(style);
 }
 
-observer = new MutationObserver(scheduleApply);
-observeRoot();
 apply();
-
-["DOMContentLoaded", "load"].forEach((eventName) => {
-  window.addEventListener(eventName, scheduleApply, { once: true });
-});
-
-[100, 500, 1500, 4000, 10000].forEach((delay) => {
-  setTimeout(scheduleApply, delay);
-});
+setTimeout(apply, 1000);
