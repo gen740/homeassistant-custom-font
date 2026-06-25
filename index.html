@@ -138,15 +138,15 @@ The quick brown fox jumps over the lazy dog.
       <section class="section" aria-labelledby="preview-heading">
         <h2 id="preview-heading">Preview</h2>
         <div id="preview" class="preview"></div>
-        <div class="preview-note">Preview uses a tofu-style final fallback so missing glyphs are easier to spot. The downloaded CSS still uses normal <code>sans-serif</code> fallback.</div>
+        <div class="preview-note">Preview uses a tofu-style final fallback so missing glyphs are easier to spot. The generated JavaScript still injects CSS with normal <code>sans-serif</code> fallback.</div>
       </section>
 
       <section class="section" aria-labelledby="css-heading">
         <div class="section-header">
-          <h2 id="css-heading">Generated CSS</h2>
+          <h2 id="css-heading">Generated JavaScript</h2>
           <div class="actions">
-            <button type="button" id="download">Download CSS</button>
-            <button type="button" id="copy">Copy CSS</button>
+            <button type="button" id="download">Download JS</button>
+            <button type="button" id="copy">Copy JS</button>
           </div>
         </div>
         <pre><code id="output"></code></pre>
@@ -155,12 +155,14 @@ The quick brown fox jumps over the lazy dog.
       <section class="section" aria-labelledby="apply-heading">
         <h2 id="apply-heading">How to apply</h2>
         <ol>
-          <li>Click <strong>Download CSS</strong> and save the generated file.</li>
-          <li>Put the CSS file under <code>/config/www/</code>.</li>
-          <li>Open Home Assistant, then go to <strong>Settings</strong> -> <strong>Dashboards</strong> -> menu -> <strong>Resources</strong>.</li>
-          <li>Add <code id="resource-url"></code> as a <strong>Stylesheet</strong> resource.</li>
+          <li>Click <strong>Download JS</strong> and save the generated file.</li>
+          <li>Put the JavaScript file under <code>/config/www/</code>.</li>
+          <li>Add it to <code>configuration.yaml</code> as a frontend extra module.</li>
           <li>Restart Home Assistant, then hard refresh the browser or clear the frontend cache.</li>
         </ol>
+        <pre><code>frontend:
+  extra_module_url:
+    - <span id="module-url"></span></code></pre>
       </section>
     </main>
 
@@ -170,7 +172,7 @@ The quick brown fox jumps over the lazy dog.
       const sample = document.querySelector("#sample");
       const preview = document.querySelector("#preview");
       const output = document.querySelector("#output");
-      const resourceUrl = document.querySelector("#resource-url");
+      const moduleUrl = document.querySelector("#module-url");
       const copy = document.querySelector("#copy");
       const download = document.querySelector("#download");
 
@@ -261,9 +263,24 @@ body {
 `;
       }
 
-      function cssFilename(fonts) {
+      function buildJs(fonts) {
+        const css = buildCss(fonts);
+
+        return `(() => {
+  const id = "home-assistant-custom-font";
+  document.getElementById(id)?.remove();
+  const style = document.createElement("style");
+  style.id = id;
+  style.dataset.homeAssistantCustomFont = "true";
+  style.textContent = ${JSON.stringify(css)};
+  document.head.append(style);
+})();
+`;
+      }
+
+      function jsFilename(fonts) {
         const slug = fonts.join("-").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-        return slug ? `homeassistant-font-${slug}.css` : "homeassistant-custom-font.css";
+        return slug ? `homeassistant-font-${slug}.js` : "homeassistant-custom-font.js";
       }
 
       function downloadText(filename, contents, type) {
@@ -294,14 +311,14 @@ body {
           input.value = fonts.join(", ");
         }
 
-        const css = buildCss(fonts);
+        const generatedJs = buildJs(fonts);
         const bodyStack = previewFontStack(fonts);
 
-        output.textContent = css;
+        output.textContent = generatedJs;
         preview.textContent = sample.value;
         previewStylesheet.href = importUrl(fonts);
         preview.style.fontFamily = fonts.length > 0 ? fontStack(fonts, "sans-serif") : "sans-serif";
-        resourceUrl.textContent = `/local/${cssFilename(fonts)}`;
+        moduleUrl.textContent = `/local/${jsFilename(fonts)}`;
 
         if (document.fonts && fonts.length > 0) {
           Promise.all(fonts.map((font) => document.fonts.load(`22px ${quoteFont(font)}`))).then(() => {
@@ -330,12 +347,12 @@ body {
         await navigator.clipboard.writeText(output.textContent);
         copy.textContent = "Copied";
         setTimeout(() => {
-          copy.textContent = "Copy CSS";
+          copy.textContent = "Copy JS";
         }, 1200);
       });
 
       download.addEventListener("click", () => {
-        downloadText(cssFilename(fontsFromInput()), output.textContent, "text/css");
+        downloadText(jsFilename(fontsFromInput()), output.textContent, "text/javascript");
       });
 
       render(parseFonts(), { syncInput: true });

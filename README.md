@@ -1,6 +1,6 @@
 # Home Assistant Custom Font CSS
 
-Single-page GitHub Pages helper for generating Home Assistant font override CSS from Google Font names.
+Single-page GitHub Pages helper for generating a Home Assistant font override JavaScript module from Google Font names.
 
 ## Usage
 
@@ -18,58 +18,34 @@ https://YOUR_USER.github.io/homeassistant-custom-font.css/?family=Roboto,Noto+Sa
 
 Find Google Font names at <https://fonts.google.com/>.
 
-The page includes editable preview text and a button to download the generated CSS as a file.
+The page includes editable preview text and a button to download the generated JavaScript as a file.
 
-The page generates CSS like:
+The page generates JavaScript like:
 
-```css
-@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto&family=Noto+Sans+JP&display=swap");
-
-html {
-  --ha-font-family-body: "Roboto", "Noto Sans JP", sans-serif;
-  --ha-font-family-heading: "Roboto", "Noto Sans JP", sans-serif;
-  --ha-font-family-code: "Roboto Mono", "Roboto", "Noto Sans JP", monospace;
-
-  --primary-font-family: "Roboto", "Noto Sans JP", sans-serif;
-  --paper-font-common-base_-_font-family: "Roboto", "Noto Sans JP", sans-serif;
-  --mdc-typography-font-family: "Roboto", "Noto Sans JP", sans-serif;
-  --material-font-family: "Roboto", "Noto Sans JP", sans-serif;
-
-  --md-sys-typescale-display-large-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-display-medium-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-display-small-font: "Roboto", "Noto Sans JP", sans-serif;
-
-  --md-sys-typescale-headline-large-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-headline-medium-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-headline-small-font: "Roboto", "Noto Sans JP", sans-serif;
-
-  --md-sys-typescale-title-large-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-title-medium-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-title-small-font: "Roboto", "Noto Sans JP", sans-serif;
-
-  --md-sys-typescale-body-large-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-body-medium-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-body-small-font: "Roboto", "Noto Sans JP", sans-serif;
-
-  --md-sys-typescale-label-large-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-label-medium-font: "Roboto", "Noto Sans JP", sans-serif;
-  --md-sys-typescale-label-small-font: "Roboto", "Noto Sans JP", sans-serif;
-
-  font-family: "Roboto", "Noto Sans JP", sans-serif;
-}
-
-body {
-  font-family: "Roboto", "Noto Sans JP", sans-serif;
-}
+```js
+(() => {
+  const id = "home-assistant-custom-font";
+  document.getElementById(id)?.remove();
+  const style = document.createElement("style");
+  style.id = id;
+  style.dataset.homeAssistantCustomFont = "true";
+  style.textContent = "@import url(\"https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto&family=Noto+Sans+JP&display=swap\");\n\nhtml { ... }";
+  document.head.append(style);
+})();
 ```
 
-GitHub Pages is static hosting, so it cannot return a dynamic `text/css` response based on query parameters. This page generates and displays the CSS client-side.
+GitHub Pages is static hosting, so it cannot return a dynamic response based on query parameters. This page generates and displays the JavaScript client-side.
 
-## Apply to Home Assistant Dashboard
+## Apply to Home Assistant
 
-1. Download the generated CSS file.
+1. Download the generated JavaScript file.
 2. Place it under `/config/www/`.
-3. Open Home Assistant and go to `Settings` -> `Dashboards`.
-4. Open the dashboard menu and choose `Resources`.
-5. Add the downloaded file URL as a `Stylesheet` resource, for example `/local/homeassistant-font-roboto-noto-sans-jp.css`.
-6. Restart Home Assistant, then hard refresh the browser or clear the frontend cache.
+3. Add the downloaded file URL to `configuration.yaml`:
+
+```yaml
+frontend:
+  extra_module_url:
+    - /local/homeassistant-font-roboto-noto-sans-jp.js
+```
+
+4. Restart Home Assistant, then hard refresh the browser or clear the frontend cache.
