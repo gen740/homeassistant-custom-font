@@ -133,9 +133,6 @@
 ホームアシスタント
 The quick brown fox jumps over the lazy dog.
 0123456789</textarea>
-        <div class="actions">
-          <button type="button" id="download">Download CSS</button>
-        </div>
       </form>
 
       <section class="section" aria-labelledby="preview-heading">
@@ -147,7 +144,10 @@ The quick brown fox jumps over the lazy dog.
       <section class="section" aria-labelledby="css-heading">
         <div class="section-header">
           <h2 id="css-heading">Generated CSS</h2>
-          <button type="button" id="copy">Copy CSS</button>
+          <div class="actions">
+            <button type="button" id="download">Download CSS</button>
+            <button type="button" id="copy">Copy CSS</button>
+          </div>
         </div>
         <pre><code id="output"></code></pre>
       </section>
