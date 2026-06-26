@@ -20,16 +20,13 @@ https://gen740.github.io/homeassistant-custom-font.css/?family=Roboto,Noto+Sans+
 
 Find Google Font names at <https://fonts.google.com/>.
 
-The page includes editable preview text and a button to copy the generated HACS configuration snippet.
+The page includes editable preview text and a button to copy the settings for the HACS integration UI.
 
-The page generates YAML like:
+The page generates settings like:
 
-```yaml
-homeassistant_custom_font:
-  font-family:
-    - "Roboto"
-  code-font-family:
-    - "Roboto Mono"
+```text
+font-family: Roboto
+code-font-family: Roboto Mono
 ```
 
 The standalone hosted `font-loader.js` still reads its own query parameters, adds a Google Fonts `<link>`, and injects a font override `<style>` tag.
@@ -41,17 +38,15 @@ The standalone hosted `font-loader.js` still reads its own query parameters, add
 3. Install `Home Assistant Custom Font`.
 4. Restart Home Assistant.
 
-## Configure Home Assistant
+## Configure In Home Assistant
 
-Add only the font settings to `configuration.yaml`:
+1. Open **Settings > Devices & services > Add integration**.
+2. Search for **Home Assistant Custom Font**.
+3. Enter Google Font names in fallback order, separated by commas.
 
-```yaml
-homeassistant_custom_font:
-  font-family:
-    - "Roboto"
-    - "Noto Sans JP"
-  code-font-family:
-    - "Roboto Mono"
+```text
+font-family: Roboto, Noto Sans JP
+code-font-family: Roboto Mono
 ```
 
 Restart Home Assistant, then hard refresh the browser or clear the frontend cache.

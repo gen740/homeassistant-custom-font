@@ -2,7 +2,7 @@
   "domain": "homeassistant_custom_font",
   "name": "Home Assistant Custom Font",
   "codeowners": [],
-  "config_flow": false,
+  "config_flow": true,
   "dependencies": ["frontend"],
   "documentation": "https://github.com/gen740/homeassistant-custom-font.css",
   "iot_class": "local_push",

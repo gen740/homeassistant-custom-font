@@ -145,9 +145,9 @@ The quick brown fox jumps over the lazy dog.
 
       <section class="section" aria-labelledby="css-heading">
         <div class="section-header">
-          <h2 id="css-heading">Generated YAML</h2>
+          <h2 id="css-heading">Generated Settings</h2>
           <div class="actions">
-            <button type="button" id="copy">Copy YAML</button>
+            <button type="button" id="copy">Copy Settings</button>
           </div>
         </div>
         <pre><code id="output"></code></pre>
@@ -156,8 +156,9 @@ The quick brown fox jumps over the lazy dog.
       <section class="section" aria-labelledby="apply-heading">
         <h2 id="apply-heading">How to apply</h2>
         <ol>
-          <li>Copy the generated YAML snippet.</li>
-          <li>Add it to <code>configuration.yaml</code>.</li>
+          <li>Install this repository with HACS as an integration.</li>
+          <li>Add <code>Home Assistant Custom Font</code> from the integrations UI.</li>
+          <li>Copy the generated values into the integration settings.</li>
           <li>Restart Home Assistant, then hard refresh the browser or clear the frontend cache.</li>
         </ol>
       </section>
@@ -279,22 +280,9 @@ html {
         return params.toString();
       }
 
-      function yamlString(value) {
-        return `"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
-      }
-
-      function yamlList(name, values) {
-        if (values.length === 0) {
-          return `  ${name}: []`;
-        }
-
-        return `  ${name}:\n${values.map((value) => `    - ${yamlString(value)}`).join("\n")}`;
-      }
-
-      function buildYaml(fonts) {
-        return `homeassistant_custom_font:
-${yamlList("font-family", fonts.body)}
-${yamlList("code-font-family", fonts.code)}
+      function buildSettings(fonts) {
+        return `font-family: ${fonts.body.join(", ")}
+code-font-family: ${fonts.code.join(", ")}
 `;
       }
 
@@ -309,10 +297,10 @@ ${yamlList("code-font-family", fonts.code)}
           codeInput.value = fonts.code.join(", ");
         }
 
-        const yaml = buildYaml(fonts);
+        const settings = buildSettings(fonts);
         const bodyStack = previewFontStack(fonts.body);
 
-        output.textContent = yaml;
+        output.textContent = settings;
         preview.textContent = sample.value;
         previewStylesheet.href = importUrl(fonts);
         preview.style.fontFamily = fonts.body.length > 0 ? fontStack(fonts.body, "sans-serif") : "sans-serif";
@@ -350,7 +338,7 @@ ${yamlList("code-font-family", fonts.code)}
         await navigator.clipboard.writeText(output.textContent);
         copy.textContent = "Copied";
         setTimeout(() => {
-          copy.textContent = "Copy YAML";
+          copy.textContent = "Copy Settings";
         }, 1200);
       });
 

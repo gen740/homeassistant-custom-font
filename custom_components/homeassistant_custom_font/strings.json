@@ -1,0 +1,30 @@
+{
+  "title": "Home Assistant Custom Font",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Home Assistant Custom Font",
+        "description": "Enter Google Font names in fallback order, separated by commas.",
+        "data": {
+          "font-family": "Font family",
+          "code-font-family": "Code font family"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Home Assistant Custom Font is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Home Assistant Custom Font",
+        "description": "Enter Google Font names in fallback order, separated by commas.",
+        "data": {
+          "font-family": "Font family",
+          "code-font-family": "Code font family"
+        }
+      }
+    }
+  }
+}

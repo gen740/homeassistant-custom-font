@@ -5,36 +5,19 @@ from __future__ import annotations
 from pathlib import Path
 from urllib.parse import urlencode
 
-import voluptuous as vol
-
-from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.frontend import add_extra_js_url, remove_extra_js_url
 from homeassistant.components.http import StaticPathConfig
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-DOMAIN = "homeassistant_custom_font"
-CONF_FONT_FAMILY = "font-family"
-CONF_CODE_FONT_FAMILY = "code-font-family"
-
-DEFAULT_FONT_FAMILY = ["Roboto"]
-DEFAULT_CODE_FONT_FAMILY = ["Roboto Mono"]
-STATIC_URL_PATH = f"/{DOMAIN}"
-
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Schema(
-            {
-                vol.Optional(CONF_FONT_FAMILY, default=DEFAULT_FONT_FAMILY): vol.All(
-                    cv.ensure_list, [cv.string]
-                ),
-                vol.Optional(
-                    CONF_CODE_FONT_FAMILY, default=DEFAULT_CODE_FONT_FAMILY
-                ): vol.All(cv.ensure_list, [cv.string]),
-            }
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
+from .const import (
+    CONF_CODE_FONT_FAMILY,
+    CONF_FONT_FAMILY,
+    DEFAULT_CODE_FONT_FAMILY,
+    DEFAULT_FONT_FAMILY,
+    DOMAIN,
+    STATIC_URL_PATH,
 )
 
 
@@ -51,11 +34,7 @@ def _module_url(font_family: list[str], code_font_family: list[str]) -> str:
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the custom font frontend module."""
-    conf = config.get(DOMAIN)
-    if conf is None:
-        return True
-
+    """Set up static files for the custom font frontend module."""
     await hass.http.async_register_static_paths(
         [
             StaticPathConfig(
@@ -65,9 +44,34 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             )
         ]
     )
-
-    add_extra_js_url(
-        hass,
-        _module_url(conf[CONF_FONT_FAMILY], conf[CONF_CODE_FONT_FAMILY]),
-    )
+    hass.data.setdefault(DOMAIN, {})
     return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up the custom font frontend module from a config entry."""
+    font_family = entry.options.get(
+        CONF_FONT_FAMILY, entry.data.get(CONF_FONT_FAMILY, DEFAULT_FONT_FAMILY)
+    )
+    code_font_family = entry.options.get(
+        CONF_CODE_FONT_FAMILY,
+        entry.data.get(CONF_CODE_FONT_FAMILY, DEFAULT_CODE_FONT_FAMILY),
+    )
+    module_url = _module_url(font_family, code_font_family)
+
+    add_extra_js_url(hass, module_url)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = module_url
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a custom font config entry."""
+    if module_url := hass.data.get(DOMAIN, {}).pop(entry.entry_id, None):
+        remove_extra_js_url(hass, module_url)
+    return True
+
+
+async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the module URL when options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
