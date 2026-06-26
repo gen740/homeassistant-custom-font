@@ -7,13 +7,13 @@ Single-page GitHub Pages helper and HACS custom integration for applying Google 
 Open the Pages URL with `family` query parameters in fallback order:
 
 ```text
-https://gen740.github.io/homeassistant-custom-font.css/?family=Roboto&code=Roboto+Mono
+https://gen740.github.io/homeassistant-custom-font/?family=Roboto&code=Roboto+Mono
 ```
 
 Comma separated values also work:
 
 ```text
-https://gen740.github.io/homeassistant-custom-font.css/?family=Roboto,Noto+Sans+JP&code=Roboto+Mono
+https://gen740.github.io/homeassistant-custom-font/?family=Roboto,Noto+Sans+JP&code=Roboto+Mono
 ```
 
 `Noto Sans JP` is shown as an example fallback, but the default body font is only `Roboto`.
@@ -31,30 +31,47 @@ code-font-family: Roboto Mono
 
 The standalone hosted `font-loader.js` still reads its own query parameters, adds a Google Fonts `<link>`, and injects a font override `<style>` tag.
 
-## HACS Install
+## Setup
 
-1. Add this repository to HACS as a custom repository.
-2. Select the `Integration` category.
-3. Install `Home Assistant Custom Font`.
-4. Restart Home Assistant.
+There are two ways to use this project. Pick one — you do not need both.
 
-## Configure In Home Assistant
+### Option A: HACS integration (UI)
 
-1. Open **Settings > Devices & services > Add integration**.
-2. Search for **Home Assistant Custom Font**.
-3. Enter Google Font names in fallback order, separated by commas.
+Recommended if you prefer a UI and want the loader served from your own Home
+Assistant instance instead of GitHub Pages.
 
-```text
-font-family: Roboto, Noto Sans JP
-code-font-family: Roboto Mono
+1. Add this repository to HACS as a custom repository and select the
+   `Integration` category.
+2. Install `Home Assistant Custom Font`, then restart Home Assistant.
+3. Open **Settings > Devices & services > Add integration** and search for
+   **Home Assistant Custom Font**.
+4. Enter Google Font names in fallback order, separated by commas:
+
+   ```text
+   font-family: Roboto, Noto Sans JP
+   code-font-family: Roboto Mono
+   ```
+
+5. Hard refresh the browser or clear the frontend cache.
+
+The integration serves its bundled loader from a URL like
+`/homeassistant_custom_font/font-loader.js?family=Roboto&family=Noto+Sans+JP&code=Roboto+Mono`
+and registers it with Home Assistant's frontend module loader automatically.
+Fonts can be changed later from the integration's **Configure** dialog.
+
+### Option B: `configuration.yaml` (manual)
+
+No HACS or custom component required. This loads the hosted `font-loader.js`
+directly via the frontend's extra module loader.
+
+Add the following to `configuration.yaml`, then restart Home Assistant:
+
+```yaml
+frontend:
+  extra_module_url:
+    - https://gen740.github.io/homeassistant-custom-font/font-loader.js?family=Roboto&family=Noto+Sans+JP&code=Roboto+Mono
 ```
 
-Restart Home Assistant, then hard refresh the browser or clear the frontend cache.
-
-The integration serves its bundled loader from:
-
-```text
-/homeassistant_custom_font/font-loader.js?family=Roboto&family=Noto+Sans+JP&code=Roboto+Mono
-```
-
-It registers that query URL with Home Assistant's frontend module loader automatically.
+Pass each font as its own `family=` parameter (or comma-separated in a single
+`family=`) in fallback order, and use `code=` for the monospace stack. After
+restarting, hard refresh the browser or clear the frontend cache.

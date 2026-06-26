@@ -1,6 +1,5 @@
 {
   "name": "Home Assistant Custom Font",
   "render_readme": true,
-  "domains": ["homeassistant_custom_font"],
   "homeassistant": "2024.6.0"
 }

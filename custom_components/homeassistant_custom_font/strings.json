@@ -11,6 +11,9 @@
         }
       }
     },
+    "error": {
+      "font_not_found": "One or more font names were not found on Google Fonts. Names are case-sensitive — check the spelling (for example \"Roboto Mono\")."
+    },
     "abort": {
       "already_configured": "Home Assistant Custom Font is already configured."
     }
@@ -25,6 +28,9 @@
           "code-font-family": "Code font family"
         }
       }
+    },
+    "error": {
+      "font_not_found": "One or more font names were not found on Google Fonts. Names are case-sensitive — check the spelling (for example \"Roboto Mono\")."
     }
   }
 }

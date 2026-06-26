@@ -143,14 +143,25 @@ The quick brown fox jumps over the lazy dog.
         <div class="preview-note">Preview uses a tofu-style final fallback so missing glyphs are easier to spot. The Home Assistant module still injects CSS with normal <code>sans-serif</code> fallback.</div>
       </section>
 
-      <section class="section" aria-labelledby="css-heading">
+      <section class="section" aria-labelledby="settings-heading">
         <div class="section-header">
-          <h2 id="css-heading">Generated Settings</h2>
+          <h2 id="settings-heading">HACS integration settings</h2>
           <div class="actions">
             <button type="button" id="copy">Copy Settings</button>
           </div>
         </div>
         <pre><code id="output"></code></pre>
+      </section>
+
+      <section class="section" aria-labelledby="yaml-heading">
+        <div class="section-header">
+          <h2 id="yaml-heading">configuration.yaml</h2>
+          <div class="actions">
+            <button type="button" id="copy-yaml">Copy YAML</button>
+          </div>
+        </div>
+        <div class="hint">No HACS required &mdash; this loads the hosted <code>font-loader.js</code> directly via the frontend module loader. Restart Home Assistant after editing.</div>
+        <pre><code id="yaml-output"></code></pre>
       </section>
 
       <section class="section" aria-labelledby="apply-heading">
@@ -171,7 +182,9 @@ The quick brown fox jumps over the lazy dog.
       const sample = document.querySelector("#sample");
       const preview = document.querySelector("#preview");
       const output = document.querySelector("#output");
+      const yamlOutput = document.querySelector("#yaml-output");
       const copy = document.querySelector("#copy");
+      const copyYaml = document.querySelector("#copy-yaml");
 
       const previewStylesheet = document.createElement("link");
       previewStylesheet.rel = "stylesheet";
@@ -286,6 +299,19 @@ code-font-family: ${fonts.code.join(", ")}
 `;
       }
 
+      function loaderUrl(fonts) {
+        const url = new URL("font-loader.js", location.href);
+        url.search = queryForFonts(fonts);
+        return url.href;
+      }
+
+      function buildYaml(fonts) {
+        return `frontend:
+  extra_module_url:
+    - ${loaderUrl(fonts)}
+`;
+      }
+
       function updateUrl(fonts) {
         const query = queryForFonts(fonts);
         history.replaceState(null, "", query ? `${location.pathname}?${query}` : location.pathname);
@@ -301,6 +327,7 @@ code-font-family: ${fonts.code.join(", ")}
         const bodyStack = previewFontStack(fonts.body);
 
         output.textContent = settings;
+        yamlOutput.textContent = buildYaml(fonts);
         preview.textContent = sample.value;
         previewStylesheet.href = importUrl(fonts);
         preview.style.fontFamily = fonts.body.length > 0 ? fontStack(fonts.body, "sans-serif") : "sans-serif";
@@ -334,13 +361,18 @@ code-font-family: ${fonts.code.join(", ")}
         preview.textContent = sample.value;
       });
 
-      copy.addEventListener("click", async () => {
-        await navigator.clipboard.writeText(output.textContent);
-        copy.textContent = "Copied";
-        setTimeout(() => {
-          copy.textContent = "Copy Settings";
-        }, 1200);
-      });
+      function wireCopy(button, getText, label) {
+        button.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(getText());
+          button.textContent = "Copied";
+          setTimeout(() => {
+            button.textContent = label;
+          }, 1200);
+        });
+      }
+
+      wireCopy(copy, () => output.textContent, "Copy Settings");
+      wireCopy(copyYaml, () => yamlOutput.textContent, "Copy YAML");
 
       render(parseFonts(), { syncInput: true });
     </script>
